@@ -1,0 +1,16 @@
+# -------------------------------------------------------------------------
+# 📁 monitoring/grafana_provisioning/dashboards/dashboards.yml
+# (Grafana 自动配置: 仪表盘)
+# -------------------------------------------------------------------------
+apiVersion: 1
+
+providers:
+- name: 'default'
+  orgId: 1
+  folder: 'General'  # (将仪表盘放入 "General" 文件夹)
+  type: file
+  disableDeletion: false
+  editable: true
+  options:
+    # ❗️ 告诉 Grafana 在容器的这个路径下查找 .json 文件
+    path: /var/lib/grafana/dashboards

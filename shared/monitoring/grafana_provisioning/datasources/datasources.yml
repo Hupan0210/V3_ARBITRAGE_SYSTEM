@@ -1,0 +1,26 @@
+# -------------------------------------------------------------------------
+# 📁 monitoring/grafana_provisioning/datasources/datasources.yml
+# (Grafana 自动配置 InfluxDB)
+# -------------------------------------------------------------------------
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB_V3_Arbitrage
+    type: influxdb
+    access: proxy
+    orgId: 1
+    
+    # ❗️ URL (使用 Docker Compose 的服务名)
+    url: http://influxdb:8086
+    
+    # ❗️ 使用 InfluxDB Token (从 .env 文件读取)
+    # (Grafana 会自动查找名为 GF_SECURE_JSON_DATA_INFLUX_TOKEN 的环境变量)
+    secureJsonData:
+      token: $INFLUXDB_TOKEN_FOR_GRAFANA
+      
+    jsonData:
+      version: Flux        # ❗️ 使用 Flux 查询语言
+      organization: $INFLUXDB_ORG_FOR_GRAFANA  # ❗️ (从 .env 读取)
+      defaultBucket: $INFLUXDB_BUCKET_FOR_GRAFANA # ❗️ (从 .env 读取)
+    
+    editable: true

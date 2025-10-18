@@ -1,0 +1,128 @@
+# -------------------------------------------------------------------------
+# 📁 docker-compose.yml
+# (V3 架构 - 主编排文件)
+#
+# 启动命令: docker-compose up --build
+# 关闭命令: docker-compose down
+# -------------------------------------------------------------------------
+version: '3.8'
+
+services:
+  
+  # --- 1. Python 微服务 (眼睛) ---
+  data_feed:
+    build: .
+    command: ["python", "services/data_feed/main.py"]
+    env_file: .env
+    volumes:
+      - .:/app  # ❗️ 将本地代码挂载到容器 (实现热重载)
+    networks:
+      - arbitrage_net
+    depends_on:
+      - redis
+    restart: always
+
+  # --- 2. Python 微服务 (大脑) ---
+  strategy_logic:
+    build: .
+    command: ["python", "services/strategy_logic/main.py"]
+    env_file: .env
+    volumes:
+      - .:/app
+    networks:
+      - arbitrage_net
+    depends_on:
+      - redis
+      - influxdb # ❗️ (V3.1 新增) 大脑现在需要连接 InfluxDB
+    restart: always
+
+  # --- 3. Python 微服务 (双手) ---
+  execution_engine:
+    build: .
+    command: ["python", "services/execution_engine/main.py"]
+    env_file: .env
+    volumes:
+      - .:/app
+    networks:
+      - arbitrage_net
+    depends_on:
+      - redis
+    restart: always
+
+  # --- 4. Python 微服务 (鹰眼) ---
+  risk_manager:
+    build: .
+    command: ["python", "services/risk_manager/main.py"]
+    env_file: .env
+    volumes:
+      - .:/app
+    networks:
+      - arbitrage_net
+    depends_on:
+      - redis
+      - influxdb
+    restart: always
+
+  # --- 5. 数据库 (V3 神经中枢) ---
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379" # 暴露到本地主机
+    volumes:
+      - redis-data:/data
+    networks:
+      - arbitrage_net
+    restart: always
+
+  # --- 6. 数据库 (V3 可视化后端) ---
+  influxdb:
+    image: influxdb:latest
+    ports:
+      - "8086:8086" # 暴露到本地主机
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    # ❗️ 使用 .env 文件中的变量来初始化 InfluxDB 容器
+    env_file: .env
+    networks:
+      - arbitrage_net
+    restart: always
+
+  # --- 7. (V3 可视化前端) ---
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000" # ❗️ 访问: http://localhost:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+      # (现有) 自动配置数据源
+      - ./monitoring/grafana_provisioning/datasources:/etc/grafana/provisioning/datasources
+      
+      # ❗️ [新] 挂载仪表盘配置文件
+      - ./monitoring/grafana_provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      # ❗️ [新] 挂载仪表盘 JSON 文件
+      - ./monitoring/grafana_dashboards:/var/lib/grafana/dashboards
+    
+    # ❗️ 注入环境变量，供 datasources.yml 使用
+    environment:
+      # (我们使用 .env 中的 APP_DATASTORE 变量，因为它们与 InfluxDB 匹配)
+      - INFLUXDB_TOKEN_FOR_GRAFANA=${APP_DATASTORE__INFLUXDB_TOKEN}
+      - INFLUXDB_ORG_FOR_GRAFANA=${APP_DATASTORE__INFLUXDB_ORG}
+      - INFLUXDB_BUCKET_FOR_GRAFANA=${APP_DATASTORE__INFLUXDB_BUCKET}
+    
+    networks:
+      - arbitrage_net
+    depends_on:
+      - influxdb
+    restart: always
+
+# -------------------------------------------------------------------------
+#  网络和卷定义
+# -------------------------------------------------------------------------
+networks:
+  arbitrage_net:
+    driver: bridge
+
+volumes:
+  redis-data:
+  influxdb-data:
+  grafana-data:

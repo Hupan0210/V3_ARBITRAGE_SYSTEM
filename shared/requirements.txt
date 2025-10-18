@@ -1,0 +1,17 @@
+# -------------------------------------------------------------------------
+# 📁 requirements.txt
+# (V3 架构 Python 依赖)
+# -------------------------------------------------------------------------
+
+# --- 核心框架 ---
+# (Pydantic V2) 用于 config.py 和所有数据模型
+pydantic>=2.0
+pydantic-settings
+
+# --- 交易所连接器 ---
+aiohttp         # 异步 HTTP (REST API)
+websockets      # 异步 WebSocket
+
+# --- 数据存储 (V3 核心) ---
+redis           # Redis 客户端 (含 redis.asyncio)
+"influxdb-client[async]" # InfluxDB V2 异步客户端

@@ -1,0 +1,40 @@
+V3_ARBITRAGE_SYSTEM/
+│
+├── 🚀 docker-compose.yml       (V3.1 最终版 - 7 合 1 启动器)
+├── 📦 Dockerfile               (用于构建 Python 微服务的基础镜像)
+├── 📋 requirements.txt         (所有 Python 依赖)
+├── 🔒 .env.example            (❗️ 环境变量模板，必须复制为 .env)
+├── 🙈 .gitignore              (❗️ [新增] Git 忽略文件，保护密钥)
+│
+├── 💾 datastore/
+│   ├── __init__.py
+│   ├── influx_client.py      (V3 可视化数据库客户端)
+│   └── redis_client.py       (V3 消息队列 & 状态持久化客户端)
+│
+├── 🧩 shared/
+│   ├── __init__.py
+│   ├── config.py             (V3 配置中心, 含 0.28% 红线)
+│   └── connectors/
+│       ├── __init__.py         (V3 交易所工厂)
+│       ├── base_connector.py (V3 交易所“合同”/抽象基类)
+│       ├── binance_connector.py (Binance 实现)
+│       └── bitget_connector.py  (Bitget 实现)
+│
+├── ⚙️ services/
+│   ├── data_feed/
+│   │   └── main.py             (V3 微服务 1: 眼睛 - 采集行情)
+│   ├── execution_engine/
+│   │   └── main.py             (V3 微服务 3: 双手 - 执行交易)
+│   ├── risk_manager/
+│   │   └── main.py             (V3 微服务 4: 鹰眼 - 风控/日志/止损)
+│   └── strategy_logic/
+│       └── main.py             (V3.1 微服务 2: 大脑 - 计算价差/写入 Influx)
+│
+└── 📊 monitoring/
+    ├── grafana_dashboards/
+    │   └── main_dashboard.json (V3.1 Grafana 仪表盘 JSON 定义)
+    └── grafana_provisioning/
+        ├── dashboards/
+        │   └── dashboards.yml    (V3.1 告诉 Grafana 从哪里加载仪表盘)
+        └── datasources/
+            └── datasources.yml   (V3.1 告诉 Grafana 如何自动连接 InfluxDB)
